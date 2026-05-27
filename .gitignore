@@ -1,0 +1,45 @@
+# Build artifacts
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python (for plotting scripts)
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Benchmark output
+bench-results/
+*.json.bench
+
+# Large data files (ITCH samples)
+data/*.bin
+data/*.gz
+!data/README.md
+!data/.gitignore
+
+# Sanitizer / fuzzer output
+*.log
+crash-*
+leak-*
+
+# Profiling output
+perf.data*
+*.flamegraph

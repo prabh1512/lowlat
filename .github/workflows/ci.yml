@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+        sanitizer: [none, asan, tsan, ubsan]
+        exclude:
+          - build_type: Release
+            sanitizer: asan
+          - build_type: Release
+            sanitizer: tsan
+          - build_type: Release
+            sanitizer: ubsan
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 clang-tools-18 ninja-build cmake
+
+      - name: Configure
+        run: |
+          SAN_FLAGS=""
+          case "${{ matrix.sanitizer }}" in
+            asan)  SAN_FLAGS="-DLOWLAT_ENABLE_ASAN=ON" ;;
+            tsan)  SAN_FLAGS="-DLOWLAT_ENABLE_TSAN=ON" ;;
+            ubsan) SAN_FLAGS="-DLOWLAT_ENABLE_UBSAN=ON" ;;
+          esac
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=clang++-18 \
+            -DCMAKE_C_COMPILER=clang-18 \
+            $SAN_FLAGS
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure
