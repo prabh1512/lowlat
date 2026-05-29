@@ -15,37 +15,11 @@
 
 namespace lowlat::itch {
 
-// -----------------------------------------------------------------------------
-// Domain types
-//
-// We use distinct type aliases for fields with different semantic meaning, even
-// when they share an underlying representation. This makes APIs self-documenting
-// (you can't accidentally pass an OrderId where a Price is expected, modulo C++
-// alias rules — these are not strong typedefs, just signals to the reader).
-// -----------------------------------------------------------------------------
-
-// Price in fixed-point format with 4 implied decimal places.
-// On the wire: 4-byte big-endian unsigned integer.
-// Semantic: price_in_dollars = Price / 10000.
 using Price = std::uint32_t;
-
-// Order reference number, unique per trading day.
-// On the wire: 8-byte big-endian unsigned integer.
 using OrderId = std::uint64_t;
-
-// Nanoseconds since midnight.
-// On the wire: 6-byte big-endian unsigned integer (stored in a 48-bit field).
-// We promote to 64-bit in code for convenience.
 using Timestamp = std::uint64_t;
-
-// Number of shares.
-// On the wire: 4-byte big-endian unsigned integer.
 using Shares = std::uint32_t;
-
-// Stock symbol: 8 ASCII characters, left-justified, space-padded.
 using StockSymbol = std::array<char, 8>;
-
-// Scaling factor for converting Price to dollars.
 inline constexpr std::uint32_t PRICE_SCALE = 10000;
 
 
@@ -73,8 +47,6 @@ struct Timestamp48 {
 
     [[nodiscard]] std::uint64_t get() const noexcept {
         // assemble the 6 big-endian bytes into a uint64_t
-        // remember: bytes[0] is most significant
-        // remember: cast to uint64_t before shifting
         uint64_t res = 0;
         for (int i = 0; i < 6; i ++){
             res += bytes[i]*(1LL << (8*(5-i)));
@@ -85,27 +57,6 @@ struct Timestamp48 {
 #pragma pack(pop)
 
 static_assert(sizeof(Timestamp48) == 6, "Timestamp48 must be exactly 6 bytes");
-
-
-// -----------------------------------------------------------------------------
-// Message structs — overlay types matching the ITCH 5.0 wire format.
-//
-// Each struct is packed (no padding) and verified against its known wire size
-// via static_assert. Multi-byte integer fields use be16/be32/be64; the 48-bit
-// timestamp uses Timestamp48. ASCII fields use char or char[N].
-//
-// Fill in the field TYPES (the names and order are correct per spec).
-// Reference table — field : bytes:
-//   message_type     : 1   (char)
-//   stock_locate     : 2
-//   tracking_number  : 2
-//   timestamp        : 6
-//   order_ref        : 8
-//   buy_sell         : 1   (char)
-//   shares           : 4
-//   stock            : 8   (char[8])
-//   price            : 4
-// -----------------------------------------------------------------------------
 
 #pragma pack(push, 1)
 
