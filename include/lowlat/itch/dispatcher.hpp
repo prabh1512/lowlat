@@ -23,20 +23,6 @@ namespace lowlat::itch {
 template <typename Handler>
 LOWLAT_ALWAYS_INLINE
 std::size_t dispatch(const std::byte* buf, Handler&& handler) {
-    // TODO: read buf[0] as a char, switch on it, for each known type:
-    //   - reinterpret_cast buf to const <MsgType>*
-    //   - call handler(*ptr) — using std::forward<Handler>(handler) if needed
-    //   - return sizeof(<MsgType>)
-    // default case: return 0 (unknown type, caller decides what to do)
-    const char c = static_cast<const char>(buf[0]);
-    switch (c){
-        case 'A': {
-            const auto* ptr = reinterpret_cast<const AddOrder*>(buf);
-            handler(*ptr);
-            return 36;
-        }template <typename Handler>
-LOWLAT_ALWAYS_INLINE
-std::size_t dispatch(const std::byte* buf, Handler&& handler) {
     const char c = static_cast<char>(buf[0]);
     switch (c) {
         case 'A': {
@@ -75,9 +61,7 @@ std::size_t dispatch(const std::byte* buf, Handler&& handler) {
             return sizeof(OrderReplace);
         }
         default:
-            return 0;
-    }
-}
+            return message_size(c);
     }
 }
 

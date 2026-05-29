@@ -161,5 +161,42 @@ static_assert(sizeof(OrderReplace) == 35, "OrderReplace wire size");
 
 #pragma pack(pop)
 
+[[nodiscard]] constexpr std::size_t message_size(char type) noexcept {
+    switch (type) {
+        // System / administrative
+        case 'S': return 12;   // System Event
+        case 'R': return 39;   // Stock Directory
+        case 'H': return 25;   // Stock Trading Action
+        case 'Y': return 20;   // Reg SHO Restriction
+        case 'L': return 26;   // Market Participant Position
+        case 'V': return 35;   // MWCB Decline Level
+        case 'W': return 12;   // MWCB Status
+        case 'K': return 28;   // IPO Quoting Period Update
+        case 'J': return 35;   // LULD Auction Collar
+        case 'h': return 21;   // Operational Halt
+
+        // Order messages (dispatched — sizes derived from structs)
+        case 'A': return sizeof(AddOrder);
+        case 'F': return sizeof(AddOrderAttributed);
+        case 'E': return sizeof(OrderExecuted);
+        case 'C': return sizeof(OrderExecutedWithPrice);
+        case 'X': return sizeof(OrderCancel);
+        case 'D': return sizeof(OrderDelete);
+        case 'U': return sizeof(OrderReplace);
+
+        // Trade messages
+        case 'P': return 44;   // Trade (Non-Cross)
+        case 'Q': return 40;   // Cross Trade
+        case 'B': return 19;   // Broken Trade
+
+        // Imbalance / price discovery
+        case 'I': return 50;   // NOII
+        case 'N': return 20;   // Retail Price Improvement
+        case 'O': return 48;   // Direct Listing with Capital Raise
+
+        default:  return 0;    // unknown — caller should treat as error
+    }
+}
+
 
 }  // namespace lowlat::itch
