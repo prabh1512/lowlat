@@ -43,3 +43,4 @@ leak-*
 # Profiling output
 perf.data*
 *.flamegraph
+data/

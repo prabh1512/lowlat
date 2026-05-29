@@ -98,22 +98,18 @@ ParseStats parse_file(const std::string& path, Handler&& handler) {
     ParseStats stats;
 
     while (p + 3 <= end) {
-        // SoupBinTCP framing: [2-byte BE length][1-byte packet type][payload]
+        // framing: [2-byte BE length][payload]
         const std::uint16_t frame_len  = read_be16(p);
-        const char          packet_type = static_cast<char>(p[2]);
-        const std::byte*    payload     = p + 3;
-        const std::size_t   payload_len = frame_len - 1; // length includes packet_type byte
+        const std::byte*    payload     = p + 2;
+        const std::size_t   payload_len = frame_len;
 
         if (payload + payload_len > end) break;  // truncated trailing frame
 
         ++stats.total_packets;
 
-        if (packet_type == 'S') {
-            const std::size_t consumed = dispatch(payload, handler);
-            if (consumed == 0) break;   // unknown type byte — stop
-            ++stats.messages;
-        }
-        // Other packet types (heartbeats, login, etc.) are skipped silently.
+        const std::size_t consumed = dispatch(payload, handler);
+        if (consumed == 0) break;   // unknown type byte — stop
+        ++stats.messages;
 
         p = payload + payload_len;
     }
