@@ -6,12 +6,16 @@
 #include <lowlat/book/order.hpp>
 #include <lowlat/book/order_pool.hpp>
 #include <utility>
+#include <lowlat/core/tsc.hpp>
+#include <vector>
 
 namespace lowlat::book {
 
 using Volume = std::uint64_t;
 
 struct CommodityBook {
+    static inline std::vector<std::uint32_t> add_cycles;
+    static inline std::vector<std::uint32_t> reduce_cycles;
     std::map<Price, Volume, std::greater<Price>> BidLevels;
     std::map<Price, Volume, std::less<Price>>    AskLevels;
     std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT;
@@ -60,26 +64,31 @@ struct CommodityBook {
         return false;
     }
 
-    template <Side S>
-    void Add(Order order, std::uint32_t idx, OrderPool& pool) {
-        if constexpr (S == Side::Bid) {
-            Add(BidLevels, BidHT, order.price, order.shares, idx, pool);
-        }   
-        else {
-            Add(AskLevels, AskHT, order.price, order.shares, idx, pool);
-        }
+template <Side S>
+void Add(Order order, std::uint32_t idx, OrderPool& pool) {
+    std::uint64_t t0 = core::rdtsc();
+    if constexpr (S == Side::Bid) {
+        Add(BidLevels, BidHT, order.price, order.shares, idx, pool);
+    } else {
+        Add(AskLevels, AskHT, order.price, order.shares, idx, pool);
     }
+    std::uint64_t t1 = core::rdtsc();
+    add_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
+}
 
-    template <Side S>
-    bool Reduce(Price price, Shares delta, std::uint32_t idx, OrderPool& pool) {
-        if constexpr (S == Side::Bid) {
-            return Reduce(BidLevels, BidHT, price, delta, idx, pool);
-        }
-
-        else {
-        return Reduce(AskLevels, AskHT, price, delta, idx, pool);
-        }
+template <Side S>
+bool Reduce(Price price, Shares delta, std::uint32_t idx, OrderPool& pool) {
+    std::uint64_t t0 = core::rdtsc();
+    bool removed;
+    if constexpr (S == Side::Bid) {
+        removed = Reduce(BidLevels, BidHT, price, delta, idx, pool);
+    } else {
+        removed = Reduce(AskLevels, AskHT, price, delta, idx, pool);
     }
+    std::uint64_t t1 = core::rdtsc();
+    reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
+    return removed;
+}
 
 };
 

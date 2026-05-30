@@ -53,6 +53,9 @@ int main(int argc, char* argv[]) {
     dump_vector("bench-results/reduce_cycles.bin",  handler.reduce_cycles);
     dump_vector("bench-results/delete_cycles.bin",  handler.delete_cycles);
     dump_vector("bench-results/replace_cycles.bin", handler.replace_cycles);
+    dump_vector("bench-results/cb_add_cycles.bin", lowlat::book::CommodityBook::add_cycles);
+    dump_vector("bench-results/cb_reduce_cycles.bin", lowlat::book::CommodityBook::reduce_cycles);
+
     std::cout << "done.\n";
     return 0;
 }
