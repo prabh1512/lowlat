@@ -15,11 +15,11 @@
 
 namespace lowlat::itch {
 
-using Price = std::uint32_t;
-using OrderId = std::uint64_t;
-using Timestamp = std::uint64_t;
-using Shares = std::uint32_t;
-using StockSymbol = std::array<char, 8>;
+// using Price = std::uint32_t;
+// using OrderId = std::uint64_t;
+// using Timestamp = std::uint64_t;
+// using Shares = std::uint32_t;
+// using StockSymbol = std::array<char, 8>;
 inline constexpr std::uint32_t PRICE_SCALE = 10000;
 
 
@@ -53,6 +53,7 @@ struct Timestamp48 {
         }
         return res;
     }
+
 };
 #pragma pack(pop)
 
