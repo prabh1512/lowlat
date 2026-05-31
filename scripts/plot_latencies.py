@@ -77,7 +77,7 @@ for name, label in [("add", "Handler (full AddOrder)"),
     if len(arr) == 0:
         continue
     ns = arr / CYCLES_PER_NS
-    clip = np.percentile(ns, 99.5)
+    clip = np.percentile(ns, 99.999)
     ns_clip = ns[ns <= clip]
     plt.hist(ns_clip, bins=200, log=True, alpha=0.55,
              label=f"{label} (p50={int(np.percentile(arr, 50)/CYCLES_PER_NS)}ns)",
@@ -100,7 +100,7 @@ for name, label in [("reduce", "Handler (full ReduceOrder)"),
     if len(arr) == 0:
         continue
     ns = arr / CYCLES_PER_NS
-    clip = np.percentile(ns, 99.5)
+    clip = np.percentile(ns, 99.999)
     ns_clip = ns[ns <= clip]
     plt.hist(ns_clip, bins=200, log=True, alpha=0.55,
              label=f"{label} (p50={int(np.percentile(arr, 50)/CYCLES_PER_NS)}ns)",
