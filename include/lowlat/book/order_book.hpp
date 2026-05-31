@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <lowlat/book/order.hpp>
 #include <lowlat/book/order_pool.hpp>
-#include <lowlat/book/commodity_book_3.hpp>
+#include <lowlat/book/commodity_book_4.hpp>
 
 namespace lowlat::book {
 
