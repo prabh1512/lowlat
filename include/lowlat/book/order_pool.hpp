@@ -36,11 +36,6 @@ struct OrderPool{
     }
 
     void DeleteOrder(std::uint32_t idx){
-        std::uint32_t next_idx, prev_idx;
-        next_idx = pool[idx].next;
-        prev_idx = pool[idx].prev;
-        if (next_idx != NIL) pool[next_idx].prev = prev_idx;
-        if (prev_idx != NIL) pool[prev_idx].next = next_idx;
         std::uint32_t old_head = free_list_head;
         pool[idx].next = old_head;
         free_list_head = idx;
