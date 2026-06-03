@@ -1,0 +1,9 @@
+tag,label,cb_add_p50,cb_reduce_p50,hdl_add_p50,hdl_del_p50,hdl_add_p999
+v1_obv0_stl,v1: std::map,53,65,129,165,2438
+v2_obv0_stl,v2: sorted vec,37,47,107,137,1389
+v3_obv0_stl,v3: reverse vec,36,48,106,137,1346
+v4_obv0_stl,v4: branchless,38,44,107,133,1409
+v5_obv0_stl,v5: linear search,36,53,106,145,1448
+v6_obv0_stl,v6: level pool,24,21,100,117,1530
+v6_obv1_stl,v6 + array stock_to_book,26,25,87,95,1326
+v6_obv1_absl,v6 + array + absl id_to_pool,26,24,76,75,1278

@@ -13,10 +13,10 @@ namespace lowlat::book {
 
 inline constexpr std::uint32_t MAX_STOCKS = 10000;
 
-template <typename CB>
+template <typename CB, typename IdMap = std::unordered_map<OrderId, std::uint32_t>>
 struct OrderBook {
     OrderPool order_pool;
-    absl::flat_hash_map<OrderId, std::uint32_t> id_to_pool;
+    IdMap id_to_pool;
     std::unique_ptr<std::array<CB, MAX_STOCKS>> stock_to_book =
         std::make_unique<std::array<CB, MAX_STOCKS>>();
     std::uint32_t peak_live_orders = 0;

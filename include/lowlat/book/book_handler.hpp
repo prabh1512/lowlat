@@ -9,15 +9,15 @@
 
 namespace lowlat::book {
 
-template <typename CB> struct BookHandler {
-  OrderBook<CB> &book;
+template <typename Book> struct BookHandler {
+  Book &book;
 
   std::vector<std::uint32_t> add_cycles;
   std::vector<std::uint32_t> reduce_cycles;
   std::vector<std::uint32_t> delete_cycles;
   std::vector<std::uint32_t> replace_cycles;
 
-  explicit BookHandler(OrderBook<CB> &b) : book(b) {
+  explicit BookHandler(Book &b) : book(b) {
     add_cycles.reserve(60'000'000);
     reduce_cycles.reserve(5'000'000);
     delete_cycles.reserve(55'000'000);

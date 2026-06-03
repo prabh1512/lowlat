@@ -1,0 +1,30 @@
+# started on Wed Jun  3 12:21:54 2026
+
+
+ Performance counter stats for './build/src/lowlat_main --variant=v6 --ob=v1 --idmap=stl data/20181228.BX_ITCH_50':
+
+     <not counted>      cpu_atom/cycles/                                                        (0.00%)
+    67,148,061,361      cpu_core/cycles/                                                      
+     <not counted>      cpu_atom/instructions/                                                  (0.00%)
+    53,371,257,474      cpu_core/instructions/                                                
+     <not counted>      cpu_atom/branches/                                                      (0.00%)
+     9,505,367,688      cpu_core/branches/                                                    
+     <not counted>      cpu_atom/branch-misses/                                                 (0.00%)
+       321,019,276      cpu_core/branch-misses/                                               
+     <not counted>      cpu_atom/cache-references/                                              (0.00%)
+     2,417,836,607      cpu_core/cache-references/                                            
+     <not counted>      cpu_atom/cache-misses/                                                  (0.00%)
+       188,049,055      cpu_core/cache-misses/                                                
+   <not supported>      cpu_atom/L1-dcache-load-misses/                                       
+       967,729,115      cpu_core/L1-dcache-load-misses/                                       
+     <not counted>      cpu_atom/dTLB-load-misses/                                              (0.00%)
+        83,319,762      cpu_core/dTLB-load-misses/                                            
+     <not counted>      cpu_atom/LLC-load-misses/                                               (0.00%)
+        14,732,772      cpu_core/LLC-load-misses/                                             
+
+      15.097058594 seconds time elapsed
+
+      13.005758000 seconds user
+       1.177525000 seconds sys
+
+

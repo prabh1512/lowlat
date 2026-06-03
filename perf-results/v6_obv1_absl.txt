@@ -1,0 +1,30 @@
+# started on Wed Jun  3 12:22:09 2026
+
+
+ Performance counter stats for './build/src/lowlat_main --variant=v6 --ob=v1 --idmap=absl data/20181228.BX_ITCH_50':
+
+     <not counted>      cpu_atom/cycles/                                                        (0.00%)
+    57,293,503,768      cpu_core/cycles/                                                      
+     <not counted>      cpu_atom/instructions/                                                  (0.00%)
+    63,709,171,310      cpu_core/instructions/                                                
+     <not counted>      cpu_atom/branches/                                                      (0.00%)
+    12,075,343,387      cpu_core/branches/                                                    
+     <not counted>      cpu_atom/branch-misses/                                                 (0.00%)
+       378,696,159      cpu_core/branch-misses/                                               
+     <not counted>      cpu_atom/cache-references/                                              (0.00%)
+     2,250,503,474      cpu_core/cache-references/                                            
+     <not counted>      cpu_atom/cache-misses/                                                  (0.00%)
+       154,911,011      cpu_core/cache-misses/                                                
+   <not supported>      cpu_atom/L1-dcache-load-misses/                                       
+       857,810,995      cpu_core/L1-dcache-load-misses/                                       
+     <not counted>      cpu_atom/dTLB-load-misses/                                              (0.00%)
+        68,767,605      cpu_core/dTLB-load-misses/                                            
+     <not counted>      cpu_atom/LLC-load-misses/                                               (0.00%)
+        14,384,778      cpu_core/LLC-load-misses/                                             
+
+      12.351817622 seconds time elapsed
+
+      11.216484000 seconds user
+       0.876663000 seconds sys
+
+

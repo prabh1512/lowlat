@@ -13,7 +13,7 @@ namespace lowlat::book {
 
 using Volume = std::uint64_t;
 
-struct CommodityBook {
+struct CommodityBookV1 {
   static inline std::vector<std::uint32_t> add_cycles;
   static inline std::vector<std::uint32_t> reduce_cycles;
   std::map<Price, Volume, std::greater<Price>> BidLevels;

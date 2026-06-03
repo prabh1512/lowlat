@@ -1,0 +1,7 @@
+tag,op,p50_ns,p90_ns,p99_ns,p99.9_ns,p99.99_ns,max_ns,count
+v5_obv0_stl,AddOrder (handler),106,156,316,1448,57716,40780410,50902296
+v5_obv0_stl,ReduceOrder (handler),126,227,299,1300,22473,353108,2218277
+v5_obv0_stl,DeleteOrder (handler),145,230,301,1272,12123,40587273,49908533
+v5_obv0_stl,ReplaceOrder (handler),248,328,430,2072,54560,21098881,6703763
+v5_obv0_stl,Add (CommodityBook only),36,65,120,311,1061,215916,57606059
+v5_obv0_stl,Reduce (CommodityBook only),53,88,113,181,1757,199020,58830573
