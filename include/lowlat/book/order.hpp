@@ -13,7 +13,7 @@ enum class Side : std::uint8_t { Bid, Ask };
 
 inline constexpr std::uint32_t NIL = UINT32_MAX; // to represent NIL in the linked lists.
 
-struct Order{
+struct alignas(64) Order{
     Stock stock = std::numeric_limits<Stock>::max();
     OrderId order_id = std::numeric_limits<OrderId>::max();
     Shares shares = std::numeric_limits<Shares>::max();

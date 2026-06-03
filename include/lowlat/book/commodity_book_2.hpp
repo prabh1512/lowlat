@@ -40,10 +40,10 @@ struct CommodityBookV2 {
         };
 
         auto it = std::lower_bound(levels.begin(), levels.end(), std::make_pair(price, ZERO), c);
-        if (it == levels.end() || (it->first != price)){
+        if (it == levels.end() || (it->first != price)) [[unlikely]] {
             levels.insert(it, std::make_pair(price, shares));
         }
-        else{
+        else [[likely]] {
             it->second += shares;
         }
     }
@@ -52,7 +52,7 @@ struct CommodityBookV2 {
     bool Reduce(Levels& levels, HT& ht, Compare comp, Price price, Shares delta, std::uint32_t idx, OrderPool& pool) {
         Order& order = pool.pool[idx];
 
-        if (delta > order.shares) {
+        if (delta > order.shares) [[unlikely]] {
             throw std::runtime_error("reduce: delta exceeds order shares");
         }
 
@@ -64,10 +64,10 @@ struct CommodityBookV2 {
 
 
         auto it = std::lower_bound(levels.begin(), levels.end(), std::make_pair(price, ZERO), c);
-        if (it == levels.end() || (it->first != price)){
+        if (it == levels.end() || (it->first != price)) [[unlikely]] {
             throw std::runtime_error("appropriate price level does not exist");
         }
-        if (it->second < delta){
+        if (it->second < delta) [[unlikely]] {
             throw std::runtime_error("delta exceeds volume in price level");
         }
 
@@ -91,7 +91,7 @@ struct CommodityBookV2 {
     }
 
     template <Side S>
-    void Add(Order order, std::uint32_t idx, OrderPool& pool) {
+    void Add(const Order &order, std::uint32_t idx, OrderPool& pool) {
         std::uint64_t t0 = core::rdtsc();
         if constexpr (S == Side::Bid) {
             Add(BidLevels, BidHT, std::greater<Price>(), order.price, order.shares, idx, pool);

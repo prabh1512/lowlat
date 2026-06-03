@@ -7,7 +7,7 @@
 #include <vector>
 #include <lowlat/itch/parser.hpp>
 #include <lowlat/book/order_book.hpp>
-#include <lowlat/book/commodity_book_4.hpp>
+#include <lowlat/book/commodity_book_5.hpp>
 #include <lowlat/book/book_handler.hpp>
 
 static void dump_vector(const std::string& path, const std::vector<std::uint32_t>& v) {
@@ -22,8 +22,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    lowlat::book::OrderBook<lowlat::book::CommodityBookV4> book;
-    lowlat::book::BookHandler<lowlat::book::CommodityBookV4> handler(book);
+    lowlat::book::OrderBook<lowlat::book::CommodityBookV2> book;
+    lowlat::book::BookHandler<lowlat::book::CommodityBookV2> handler(book);
 
     lowlat::itch::ParseStats ps;
     auto wall_start = std::chrono::steady_clock::now();
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "--- Summary ---\n";
     std::cout << "messages processed:  " << ps.messages << '\n';
-    std::cout << "stocks tracked:      " << book.stock_to_book.size() << '\n';
+    // std::cout << "stocks tracked:      " << book.stock_to_book.size() << '\n';
     std::cout << "peak live orders:    " << book.peak_live_orders << '\n';
     std::cout << "wall time (sec):     " << seconds << '\n';
     std::cout << "throughput (msg/s):  " << static_cast<std::uint64_t>(static_cast<double>(ps.messages) / seconds)  << '\n';
@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
     dump_vector("bench-results/reduce_cycles.bin",  handler.reduce_cycles);
     dump_vector("bench-results/delete_cycles.bin",  handler.delete_cycles);
     dump_vector("bench-results/replace_cycles.bin", handler.replace_cycles);
-    dump_vector("bench-results/cb_add_cycles.bin", lowlat::book::CommodityBookV4::add_cycles);
-    dump_vector("bench-results/cb_reduce_cycles.bin", lowlat::book::CommodityBookV4::reduce_cycles);
+    dump_vector("bench-results/cb_add_cycles.bin", lowlat::book::CommodityBookV2::add_cycles);
+    dump_vector("bench-results/cb_reduce_cycles.bin", lowlat::book::CommodityBookV2::reduce_cycles);
 
     std::cout << "done.\n";
     return 0;

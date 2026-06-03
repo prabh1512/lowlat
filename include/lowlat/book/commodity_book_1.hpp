@@ -18,8 +18,8 @@ struct CommodityBook {
     static inline std::vector<std::uint32_t> reduce_cycles;
     std::map<Price, Volume, std::greater<Price>> BidLevels;
     std::map<Price, Volume, std::less<Price>>    AskLevels;
-    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT;
-    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> AskHT;
+    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT; //um
+    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> AskHT; //um
 
     template <typename Levels, typename HT>
     void Add(Levels& levels, HT& ht, Price price, Shares shares, std::uint32_t idx, OrderPool& pool) {
