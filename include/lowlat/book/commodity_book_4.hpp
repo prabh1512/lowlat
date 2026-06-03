@@ -1,135 +1,141 @@
 #pragma once
 
-#include <vector>
-#include <unordered_map>
+#include <algorithm>
+#include <lowlat/book/commodity_book_2.hpp>
 #include <lowlat/book/order.hpp>
 #include <lowlat/core/tsc.hpp>
-#include <lowlat/book/commodity_book_2.hpp>
-#include <utility>
 #include <stdexcept>
-#include <algorithm>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace lowlat::book {
 
 struct CommodityBookV4 {
 
-    template <typename It, class T, class Compare>
-    It branchless_lower_bound(It first, It last, const T& value, Compare comp){
-        auto length = last - first;
-        while (length > 0)
-        {
-            auto half = length / 2;
-            first += comp(first[half], value) * (length - half);
-            length = half;
-        }
-        return first;
+  template <typename It, class T, class Compare>
+  It branchless_lower_bound(It first, It last, const T &value, Compare comp) {
+    auto length = last - first;
+    while (length > 0) {
+      auto half = length / 2;
+      first += comp(first[half], value) * (length - half);
+      length = half;
+    }
+    return first;
+  }
+
+  std::vector<std::pair<Price, Shares>> BidLevels;
+  std::vector<std::pair<Price, Shares>> AskLevels;
+
+  // BidLevels stores smallest to largest bids -> more activity happens at the
+  // back, and operations are cheaper Asklevels stores largest to smallest bids
+  // -> same reason as above
+
+  std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT;
+  std::unordered_map<Price, std::pair<uint32_t, uint32_t>> AskHT;
+  static inline std::vector<std::uint32_t> add_cycles;
+  static inline std::vector<std::uint32_t> reduce_cycles;
+
+  template <typename Levels, typename HT, typename Compare>
+  void Add(Levels &levels, HT &ht, Compare comp, Price price, Shares shares,
+           std::uint32_t idx, OrderPool &pool) {
+    if (ht.find(price) == ht.end())
+      ht[price] = std::make_pair(NIL, NIL);
+    auto &[u, v] = ht[price];
+    if (v != NIL)
+      pool.pool[v].next = idx;
+    pool.pool[idx].prev = v;
+    pool.pool[idx].next = NIL;
+    v = idx;
+    if (u == NIL)
+      u = idx;
+    auto c = [&](const auto &a, const auto &b) {
+      return comp(a.first, b.first);
+    };
+
+    auto it = branchless_lower_bound(levels.begin(), levels.end(),
+                                     std::make_pair(price, ZERO), c);
+    if (it == levels.end() || (it->first != price)) {
+      levels.insert(it, std::make_pair(price, shares));
+    } else {
+      it->second += shares;
+    }
+  }
+
+  template <typename Levels, typename HT, typename Compare>
+  bool Reduce(Levels &levels, HT &ht, Compare comp, Price price, Shares delta,
+              std::uint32_t idx, OrderPool &pool) {
+    Order &order = pool.pool[idx];
+
+    if (delta > order.shares) {
+      throw std::runtime_error("reduce: delta exceeds order shares");
     }
 
-    std::vector<std::pair<Price, Shares>> BidLevels;
-    std::vector<std::pair<Price, Shares>> AskLevels;
+    order.shares -= delta;
 
-    // BidLevels stores smallest to largest bids -> more activity happens at the back, and operations are cheaper
-    // Asklevels stores largest to smallest bids -> same reason as above
+    auto c = [&](const auto &a, const auto &b) {
+      return comp(a.first, b.first);
+    };
 
-    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT;
-    std::unordered_map<Price, std::pair<uint32_t, uint32_t>> AskHT;
-    static inline std::vector<std::uint32_t> add_cycles;
-    static inline std::vector<std::uint32_t> reduce_cycles;
-
-
-    template <typename Levels, typename HT, typename Compare>
-    void Add(Levels& levels, HT& ht, Compare comp, Price price, Shares shares, std::uint32_t idx, OrderPool& pool) {
-        if (ht.find(price) == ht.end()) ht[price] = std::make_pair(NIL, NIL);
-        auto& [u, v] = ht[price];
-        if (v != NIL) pool.pool[v].next = idx;
-        pool.pool[idx].prev = v;
-        pool.pool[idx].next = NIL;
-        v = idx;
-        if (u == NIL) u = idx;
-        auto c = [&](const auto& a, const auto& b) {
-            return comp(a.first, b.first);
-        };
-
-        auto it = branchless_lower_bound(levels.begin(), levels.end(), std::make_pair(price, ZERO), c);
-        if (it == levels.end() || (it->first != price)){
-            levels.insert(it, std::make_pair(price, shares));
-        }
-        else{
-            it->second += shares;
-        }
+    auto it = branchless_lower_bound(levels.begin(), levels.end(),
+                                     std::make_pair(price, ZERO), c);
+    if (it == levels.end() || (it->first != price)) {
+      throw std::runtime_error("appropriate price level does not exist");
+    }
+    if (it->second < delta) {
+      throw std::runtime_error("delta exceeds volume in price level");
     }
 
-    template <typename Levels, typename HT, typename Compare>
-    bool Reduce(Levels& levels, HT& ht, Compare comp, Price price, Shares delta, std::uint32_t idx, OrderPool& pool) {
-        Order& order = pool.pool[idx];
+    it->second -= delta;
 
-        if (delta > order.shares) {
-            throw std::runtime_error("reduce: delta exceeds order shares");
-        }
+    if (order.shares == 0) {
+      auto &[head, tail] = ht[price];
+      if (order.prev != NIL)
+        pool.pool[order.prev].next = order.next;
+      else
+        head = order.next;
+      if (order.next != NIL)
+        pool.pool[order.next].prev = order.prev;
+      else
+        tail = order.prev;
 
-        order.shares -= delta;
+      if (it->second == 0) {
+        levels.erase(it);
+        ht.erase(price);
+      }
 
-        auto c = [&](const auto& a, const auto& b) {
-            return comp(a.first, b.first);
-        };
-
-
-        auto it = branchless_lower_bound(levels.begin(), levels.end(), std::make_pair(price, ZERO), c);
-        if (it == levels.end() || (it->first != price)){
-            throw std::runtime_error("appropriate price level does not exist");
-        }
-        if (it->second < delta){
-            throw std::runtime_error("delta exceeds volume in price level");
-        }
-
-        it->second -= delta;
-
-        if (order.shares == 0) {
-            auto& [head, tail] = ht[price];
-            if (order.prev != NIL) pool.pool[order.prev].next = order.next;
-            else head = order.next;
-            if (order.next != NIL) pool.pool[order.next].prev = order.prev;
-            else tail = order.prev;
-
-            if (it->second == 0) {
-                levels.erase(it);
-                ht.erase(price);
-            }
-
-            return true;
-        }
-        return false;
+      return true;
     }
+    return false;
+  }
 
-    template <Side S>
-    void Add(Order order, std::uint32_t idx, OrderPool& pool) {
-        std::uint64_t t0 = core::rdtsc();
-        if constexpr (S == Side::Bid) {
-            Add(BidLevels, BidHT, std::less<Price>(), order.price, order.shares, idx, pool);
-        } else {
-            Add(AskLevels, AskHT, std::greater<Price>(), order.price, order.shares, idx, pool);
-        }
-        std::uint64_t t1 = core::rdtsc();
-        add_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
+  template <Side S>
+  void Add(Price price, Shares shares, std::uint32_t idx, OrderPool &pool) {
+    std::uint64_t t0 = core::rdtsc();
+    if constexpr (S == Side::Bid) {
+      Add(BidLevels, BidHT, std::less<Price>(), price, shares, idx, pool);
+    } else {
+      Add(AskLevels, AskHT, std::greater<Price>(), price, shares, idx, pool);
     }
+    std::uint64_t t1 = core::rdtsc();
+    add_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
+  }
 
-    template <Side S>
-    bool Reduce(Price price, Shares delta, std::uint32_t idx, OrderPool& pool) {
-        std::uint64_t t0 = core::rdtsc();
-        bool removed;
-        if constexpr (S == Side::Bid) {
-            removed = Reduce(BidLevels, BidHT, std::less<Price>(), price, delta, idx, pool);
-        } else {
-            removed = Reduce(AskLevels, AskHT, std::greater<Price>(), price, delta, idx, pool);
-        }
-        std::uint64_t t1 = core::rdtsc();
-        reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
-        return removed;
+  template <Side S>
+  bool Reduce(Price price, Shares delta, std::uint32_t idx, OrderPool &pool) {
+    std::uint64_t t0 = core::rdtsc();
+    bool removed;
+    if constexpr (S == Side::Bid) {
+      removed =
+          Reduce(BidLevels, BidHT, std::less<Price>(), price, delta, idx, pool);
+    } else {
+      removed = Reduce(AskLevels, AskHT, std::greater<Price>(), price, delta,
+                       idx, pool);
     }
-
-
-
-
+    std::uint64_t t1 = core::rdtsc();
+    reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
+    return removed;
+  }
 };
 
 } // namespace lowlat::book

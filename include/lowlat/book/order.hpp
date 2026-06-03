@@ -13,14 +13,15 @@ enum class Side : std::uint8_t { Bid, Ask };
 
 inline constexpr std::uint32_t NIL = UINT32_MAX; // to represent NIL in the linked lists.
 
-struct alignas(64) Order{
-    Stock stock = std::numeric_limits<Stock>::max();
-    OrderId order_id = std::numeric_limits<OrderId>::max();
-    Shares shares = std::numeric_limits<Shares>::max();
-    Price price = std::numeric_limits<Price>::max();
-    Side side = Side::Bid;
-    uint32_t next = NIL;
-    uint32_t prev = NIL;
+struct Order {
+    Stock     stock;
+    OrderId   order_id;
+    Shares    shares;
+    Price     price;
+    Side      side;
+    std::uint32_t prev;
+    std::uint32_t next;
+    std::uint32_t level_idx; 
 };
 
 } // namespace lowlat::book

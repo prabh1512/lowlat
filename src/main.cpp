@@ -22,8 +22,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    lowlat::book::OrderBook<lowlat::book::CommodityBookV2> book;
-    lowlat::book::BookHandler<lowlat::book::CommodityBookV2> handler(book);
+    lowlat::book::OrderBook<lowlat::book::CommodityBookV6> book;
+    lowlat::book::BookHandler<lowlat::book::CommodityBookV6> handler(book);
 
     lowlat::itch::ParseStats ps;
     auto wall_start = std::chrono::steady_clock::now();
@@ -53,8 +53,9 @@ int main(int argc, char* argv[]) {
     dump_vector("bench-results/reduce_cycles.bin",  handler.reduce_cycles);
     dump_vector("bench-results/delete_cycles.bin",  handler.delete_cycles);
     dump_vector("bench-results/replace_cycles.bin", handler.replace_cycles);
-    dump_vector("bench-results/cb_add_cycles.bin", lowlat::book::CommodityBookV2::add_cycles);
-    dump_vector("bench-results/cb_reduce_cycles.bin", lowlat::book::CommodityBookV2::reduce_cycles);
+    dump_vector("bench-results/cb_add_cycles.bin", lowlat::book::CommodityBookV6::add_cycles);
+    dump_vector("bench-results/cb_reduce_cycles.bin", lowlat::book::CommodityBookV6::reduce_cycles);
+    std::cout << "live orders end:     " << book.id_to_pool.size() << '\n';
 
     std::cout << "done.\n";
     return 0;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <unordered_map>
+#include <array>
+#include <memory>
 #include <stdexcept>
 #include <lowlat/book/order.hpp>
 #include <lowlat/book/order_pool.hpp>
@@ -8,32 +10,37 @@
 
 namespace lowlat::book {
 
-
-inline constexpr std::uint32_t MAX_STOCKS = 10'000;
+inline constexpr std::uint32_t MAX_STOCKS = 10000;
 
 template <typename CB>
 struct OrderBook {
     OrderPool order_pool;
-    std::unordered_map<OrderId, std::uint32_t> id_to_pool; //um
-    // std::unordered_map<Stock, CB> stock_to_book; //um
-    std::unique_ptr<std::array<CB, MAX_STOCKS>> stock_to_book = std::make_unique<std::array<CB, MAX_STOCKS>>();
+    std::unordered_map<OrderId, std::uint32_t> id_to_pool;
+    std::unique_ptr<std::array<CB, MAX_STOCKS>> stock_to_book =
+        std::make_unique<std::array<CB, MAX_STOCKS>>();
     std::uint32_t peak_live_orders = 0;
 
-    void AddOrder(const Order& order) {
-        std::uint32_t idx = order_pool.InsertOrder(order);
-        id_to_pool[order.order_id] = idx;
-        if (id_to_pool.size() > peak_live_orders) peak_live_orders = static_cast<std::uint32_t>(id_to_pool.size());
-        auto& cb = (*stock_to_book)[order.stock];
+    void AddOrder(Stock stock, OrderId id, Shares shares, Price price, Side side) {
+        std::uint32_t idx = order_pool.Allocate();
+        Order& slot = order_pool.pool[idx];
+        slot.stock    = stock;
+        slot.order_id = id;
+        slot.shares   = shares;
+        slot.price    = price;
+        slot.side     = side;
 
-        if (order.side == Side::Bid) {
-            cb.template Add<Side::Bid>(order, idx, order_pool);
+        id_to_pool[id] = idx;
+        if (id_to_pool.size() > peak_live_orders)
+            peak_live_orders = static_cast<std::uint32_t>(id_to_pool.size());
+
+        auto& cb = (*stock_to_book)[stock];
+        if (side == Side::Bid) {
+            cb.template Add<Side::Bid>(price, shares, idx, order_pool);
         } else {
-            cb.template Add<Side::Ask>(order, idx, order_pool);
+            cb.template Add<Side::Ask>(price, shares, idx, order_pool);
         }
     }
 
-    // Reduces an order by `delta` shares. If shares hit zero, the order is fully removed.
-    // Used for Execute and partial Cancel. Pass delta == order.shares for full Delete.
     void ReduceOrder(OrderId id, Shares delta) {
         auto it = id_to_pool.find(id);
         if (it == id_to_pool.end()) [[unlikely]] {
@@ -60,7 +67,6 @@ struct OrderBook {
         }
     }
 
-    // Full delete = reduce by full remaining shares.
     void DeleteOrder(OrderId id) {
         auto it = id_to_pool.find(id);
         if (it == id_to_pool.end()) [[unlikely]] {
@@ -70,7 +76,6 @@ struct OrderBook {
         ReduceOrder(id, remaining);
     }
 
-    // Atomic cancel-old + add-new at new price/shares (same stock + side as old).
     void ReplaceOrder(OrderId old_id, OrderId new_id, Price new_price, Shares new_shares) {
         auto it = id_to_pool.find(old_id);
         if (it == id_to_pool.end()) [[unlikely]] {
@@ -81,18 +86,8 @@ struct OrderBook {
         Side  side  = old_order.side;
 
         DeleteOrder(old_id);
-
-        Order new_order;
-        new_order.stock   = stock;
-        new_order.order_id = new_id;
-        new_order.shares  = new_shares;
-        new_order.price   = new_price;
-        new_order.side    = side;
-        new_order.prev    = NIL;
-        new_order.next    = NIL;
-
-        AddOrder(new_order);
+        AddOrder(stock, new_id, new_shares, new_price, side);
     }
 };
 
-}  // namespace
+}  // namespace lowlat::book

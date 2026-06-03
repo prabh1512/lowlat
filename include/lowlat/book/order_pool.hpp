@@ -23,16 +23,13 @@ struct OrderPool{
         }
     }
 
-    std::uint32_t InsertOrder(const Order& order){
-        if (free_list_head == NIL){
+    std::uint32_t Allocate() {
+        if (free_list_head == NIL) [[unlikely]] {
             throw std::runtime_error("pool is full");
         }
-
-        uint32_t new_head = pool[(free_list_head)].next;
-        pool[free_list_head] = order;
-        uint32_t res = free_list_head;
-        free_list_head = new_head;
-        return res;
+        std::uint32_t idx = free_list_head;
+        free_list_head = pool[idx].next;
+        return idx;
     }
 
     void DeleteOrder(std::uint32_t idx){
