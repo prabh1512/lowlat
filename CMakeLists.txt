@@ -59,6 +59,10 @@ target_include_directories(lowlat INTERFACE
 )
 target_link_libraries(lowlat INTERFACE lowlat_warnings lowlat_optimization)
 
+find_package(absl REQUIRED)
+target_link_libraries(lowlat INTERFACE absl::flat_hash_map)
+
+
 # ----- Subdirectories -----
 add_subdirectory(src)
 

@@ -7,6 +7,7 @@
 #include <lowlat/book/order.hpp>
 #include <lowlat/book/order_pool.hpp>
 #include <lowlat/book/commodity_book_5.hpp>
+#include <absl/container/flat_hash_map.h>
 
 namespace lowlat::book {
 
@@ -15,7 +16,7 @@ inline constexpr std::uint32_t MAX_STOCKS = 10000;
 template <typename CB>
 struct OrderBook {
     OrderPool order_pool;
-    std::unordered_map<OrderId, std::uint32_t> id_to_pool;
+    absl::flat_hash_map<OrderId, std::uint32_t> id_to_pool;
     std::unique_ptr<std::array<CB, MAX_STOCKS>> stock_to_book =
         std::make_unique<std::array<CB, MAX_STOCKS>>();
     std::uint32_t peak_live_orders = 0;
