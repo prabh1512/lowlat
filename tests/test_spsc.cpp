@@ -42,6 +42,27 @@ TEST(SPSCQueue, FillAndDrain) {
     q.flush_reads();
 }
 
+TEST(SPSCQueue, WrapAround) {
+    lowlat::queue::SPSCQueue<int, 4> q;
+    int out;
+
+    // fill and drain twice to force the ring to wrap
+    for (int round = 0; round < 2; ++round) {
+        EXPECT_TRUE(q.try_push(round * 10 + 1));
+        EXPECT_TRUE(q.try_push(round * 10 + 2));
+        EXPECT_TRUE(q.try_push(round * 10 + 3));
+        EXPECT_TRUE(q.try_push(round * 10 + 4));
+        EXPECT_FALSE(q.try_push(0)); // full
+        q.flush_writes();
+        EXPECT_TRUE(q.try_pop(out)); EXPECT_EQ(out, round * 10 + 1);
+        EXPECT_TRUE(q.try_pop(out)); EXPECT_EQ(out, round * 10 + 2);
+        EXPECT_TRUE(q.try_pop(out)); EXPECT_EQ(out, round * 10 + 3);
+        EXPECT_TRUE(q.try_pop(out)); EXPECT_EQ(out, round * 10 + 4);
+        EXPECT_FALSE(q.try_pop(out)); // empty
+        q.flush_reads();
+    }
+}
+
 TEST(SPSCQueue, ProducerConsumerInOrder) {
     constexpr std::size_t CAP = 1 << 14; // must exceed BATCH_SIZE (8192)
     constexpr std::uint64_t N = 1'000'000;

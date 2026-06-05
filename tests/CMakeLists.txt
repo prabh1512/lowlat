@@ -13,6 +13,7 @@ add_executable(lowlat_tests
     test_order_book.cpp
     test_itch.cpp
     test_cross_variant.cpp
+    test_parser.cpp
 )
 
 target_link_libraries(lowlat_tests PRIVATE

@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <stdexcept>
 #include <lowlat/book/order_book.hpp>
 #include <lowlat/book/commodity_book_1.hpp>
 #include <lowlat/book/commodity_book_2.hpp>
@@ -129,6 +130,14 @@ TYPED_TEST(OrderBookTest, BookEmptyAfterAllDeleted) {
     auto [bp, bs, ap, as] = (*this->book.stock_to_book)[this->S].top_of_book();
     EXPECT_EQ(bp, 0u); EXPECT_EQ(bs, 0u);
     EXPECT_EQ(ap, 0u); EXPECT_EQ(as, 0u);
+}
+
+TYPED_TEST(OrderBookTest, DeleteUnknownOrderThrows) {
+    EXPECT_THROW(this->book.DeleteOrder(999), std::runtime_error);
+}
+
+TYPED_TEST(OrderBookTest, ReduceUnknownOrderThrows) {
+    EXPECT_THROW(this->book.ReduceOrder(999, 10), std::runtime_error);
 }
 
 TYPED_TEST(OrderBookTest, IndependentStocks) {
