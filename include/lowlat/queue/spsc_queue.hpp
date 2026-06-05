@@ -29,7 +29,12 @@ template <typename T, std::size_t Capacity> struct SPSCQueue {
   bool try_push(const T &item) {
 
     if (writer_cnt - cached_read >= Capacity) {
-      // check again
+      // Flush pending writes before re-checking: consumer can't drain if it
+      // can't see the items we've already written.
+      if (writer_cnt != pub_write) {
+        pub_write = writer_cnt;
+        mWriteCounter.store(writer_cnt, std::memory_order_release);
+      }
       cached_read = mReadCounter.load(std::memory_order_acquire);
       if (writer_cnt - cached_read >= Capacity) {
         return false; // queue is full

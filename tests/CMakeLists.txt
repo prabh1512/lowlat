@@ -10,6 +10,9 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(lowlat_tests
     test_spsc.cpp
+    test_order_book.cpp
+    test_itch.cpp
+    test_cross_variant.cpp
 )
 
 target_link_libraries(lowlat_tests PRIVATE

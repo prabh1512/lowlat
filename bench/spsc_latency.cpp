@@ -29,7 +29,7 @@ struct Message {
 int main() {
     using lowlat::core::rdtsc;
 
-    constexpr std::size_t CAP = 1024;
+    constexpr std::size_t CAP = 1 << 14;
     constexpr std::uint64_t WARMUP_N = 10'000'000;
     constexpr std::uint64_t N = 1'000'000'000;
     constexpr std::size_t NUM_SAMPLES = 100'000;

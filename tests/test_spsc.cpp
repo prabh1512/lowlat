@@ -1,8 +1,15 @@
 #include <thread>
 #include <vector>
 #include <atomic>
+#include <pthread.h>
+#include <sched.h>
 #include <gtest/gtest.h>
 #include <lowlat/queue/spsc_queue.hpp>
+
+static void pin(std::thread& t, int core) {
+    cpu_set_t s; CPU_ZERO(&s); CPU_SET(core, &s);
+    pthread_setaffinity_np(t.native_handle(), sizeof(s), &s);
+}
 
 TEST(SPSCQueue, SingleThreadedBasic) {
     lowlat::queue::SPSCQueue<int, 8> q;
@@ -36,22 +43,19 @@ TEST(SPSCQueue, FillAndDrain) {
 }
 
 TEST(SPSCQueue, ProducerConsumerInOrder) {
-    constexpr std::size_t CAP = 1024;
+    constexpr std::size_t CAP = 1 << 14; // must exceed BATCH_SIZE (8192)
     constexpr std::uint64_t N = 1'000'000;
 
     lowlat::queue::SPSCQueue<std::uint64_t, CAP> q;
 
     std::thread producer([&] {
-        for (std::uint64_t i = 0; i < N; ++i) {
-            while (!q.try_push(i)) {
-                // spin
-            }
-        }
+        for (std::uint64_t i = 0; i < N; ++i)
+            while (!q.try_push(i)) {}
         q.flush_writes();
     });
+    pin(producer, 2);
 
-    std::uint64_t expected = 0;
-    std::uint64_t val;
+    std::uint64_t expected = 0, val;
     while (expected < N) {
         if (q.try_pop(val)) {
             ASSERT_EQ(val, expected);
@@ -59,7 +63,6 @@ TEST(SPSCQueue, ProducerConsumerInOrder) {
         }
     }
     q.flush_reads();
-
     producer.join();
     EXPECT_EQ(expected, N);
 }
