@@ -10,6 +10,7 @@ TEST(SPSCQueue, SingleThreadedBasic) {
 
     EXPECT_FALSE(q.try_pop(out));
     EXPECT_TRUE(q.try_push(42));
+    q.flush_writes();
     EXPECT_TRUE(q.try_pop(out));
     EXPECT_EQ(out, 42);
     EXPECT_FALSE(q.try_pop(out));
@@ -23,6 +24,7 @@ TEST(SPSCQueue, FillAndDrain) {
     EXPECT_TRUE(q.try_push(3));
     EXPECT_TRUE(q.try_push(4));
     EXPECT_FALSE(q.try_push(5));  // full
+    q.flush_writes();
 
     int out;
     EXPECT_TRUE(q.try_pop(out));  EXPECT_EQ(out, 1);
@@ -30,6 +32,7 @@ TEST(SPSCQueue, FillAndDrain) {
     EXPECT_TRUE(q.try_pop(out));  EXPECT_EQ(out, 3);
     EXPECT_TRUE(q.try_pop(out));  EXPECT_EQ(out, 4);
     EXPECT_FALSE(q.try_pop(out)); // empty
+    q.flush_reads();
 }
 
 TEST(SPSCQueue, ProducerConsumerInOrder) {
@@ -44,6 +47,7 @@ TEST(SPSCQueue, ProducerConsumerInOrder) {
                 // spin
             }
         }
+        q.flush_writes();
     });
 
     std::uint64_t expected = 0;
@@ -54,6 +58,7 @@ TEST(SPSCQueue, ProducerConsumerInOrder) {
             ++expected;
         }
     }
+    q.flush_reads();
 
     producer.join();
     EXPECT_EQ(expected, N);
