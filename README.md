@@ -1,4 +1,4 @@
-# lowlat
+# LowLat
 
 A low-latency NASDAQ ITCH 5.0 order book, built as a benchmarking study inspired by David Gross's CppCon 2024 talk. Parses a real BX ITCH feed, maintains per-stock order books, and measures the per-operation latency cost of six price-level data structures.
 
