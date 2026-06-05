@@ -13,7 +13,7 @@ template <typename T, std::size_t Capacity> struct SPSCQueue {
   static_assert((Capacity & (Capacity - 1)) == 0,
                 "Capacity must be a power of 2");
   static constexpr std::size_t MASK = Capacity - 1;
-  static constexpr std::uint32_t BATCH_SIZE = 64;
+  static constexpr std::uint32_t BATCH_SIZE = 8192;
 
   alignas(CACHE_LINE_SIZE) std::atomic<std::uint64_t> mReadCounter{0};
   alignas(CACHE_LINE_SIZE) std::atomic<std::uint64_t> mWriteCounter{0};

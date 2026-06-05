@@ -99,6 +99,20 @@ struct CommodityBookV1 {
     reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
     return removed;
   }
+
+  std::tuple<Price, Shares, Price, Shares> top_of_book() const {
+    Price bp = 0; Shares bs = 0;
+    Price ap = 0; Shares as = 0;
+    if (!BidLevels.empty()) {
+        bp = BidLevels.begin()->first;
+        bs = static_cast<Shares>(BidLevels.begin()->second);
+    }
+    if (!AskLevels.empty()) {
+        ap = AskLevels.begin()->first;
+        as = static_cast<Shares>(AskLevels.begin()->second);
+    }
+    return {bp, bs, ap, as};
+}
 };
 
 } // namespace lowlat::book

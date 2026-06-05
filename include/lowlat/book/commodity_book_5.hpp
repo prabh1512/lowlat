@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <tuple>
+#include <limits>
 
 namespace lowlat::book {
 
@@ -162,6 +164,21 @@ struct CommodityBookV5 {
     reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
     return removed;
   }
+
+  std::tuple<Price, Shares, Price, Shares> top_of_book() const {
+    Price bp = 0; Shares bs = 0;
+    Price ap = 0; Shares as = 0;
+    for (const auto& [px, sh] : BidLevels) {
+        if (px > bp) { bp = px; bs = static_cast<Shares>(sh); }
+    }
+    Price min_ask = std::numeric_limits<Price>::max();
+    for (const auto& [px, sh] : AskLevels) {
+        if (px < min_ask) { min_ask = px; as = static_cast<Shares>(sh); }
+    }
+    if (min_ask != std::numeric_limits<Price>::max()) ap = min_ask;
+    return {bp, bs, ap, as};
+}
+
 };
 
 } // namespace lowlat::book

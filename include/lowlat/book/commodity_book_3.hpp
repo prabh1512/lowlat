@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 namespace lowlat::book {
 
@@ -125,6 +126,20 @@ struct CommodityBookV3 {
     reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
     return removed;
   }
+
+  std::tuple<Price, Shares, Price, Shares> top_of_book() const {
+    Price bp = 0; Shares bs = 0;
+    Price ap = 0; Shares as = 0;
+    if (!BidLevels.empty()) {
+        bp = BidLevels.back().first;
+        bs = static_cast<Shares>(BidLevels.back().second);
+    }
+    if (!AskLevels.empty()) {
+        ap = AskLevels.back().first;
+        as = static_cast<Shares>(AskLevels.back().second);
+    }
+    return {bp, bs, ap, as};
+}
 };
 
 } // namespace lowlat::book

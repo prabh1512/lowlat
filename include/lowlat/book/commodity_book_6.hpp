@@ -7,6 +7,7 @@
 #include <lowlat/core/tsc.hpp>
 #include <stdexcept>
 #include <vector>
+#include <tuple>
 
 namespace lowlat::book {
 
@@ -164,6 +165,26 @@ struct CommodityBookV6 {
     reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
     return removed;
   }
+
+  std::tuple<Price, Shares, Price, Shares> top_of_book() const {
+    Price bid_px = 0;
+    Shares bid_sz = 0;
+    Price ask_px = 0;
+    Shares ask_sz = 0;
+
+    if (!BidIndices.empty()) {
+        const PriceLevel& lvl = level_pool[BidIndices.front()];
+        bid_px = lvl.price;
+        bid_sz = static_cast<Shares>(lvl.volume);
+    }
+    if (!AskIndices.empty()) {
+        const PriceLevel& lvl = level_pool[AskIndices.front()];
+        ask_px = lvl.price;
+        ask_sz = static_cast<Shares>(lvl.volume);
+    }
+    return {bid_px, bid_sz, ask_px, ask_sz};
+}
+
 };
 
 } // namespace lowlat::book

@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 namespace lowlat::book {
 
@@ -18,7 +19,7 @@ struct CommodityBookV2 {
   std::vector<std::pair<Price, Shares>> AskLevels;
 
   // BidLevels stores largest to smallest bids
-  // Asklevels stores smallest to largest bids
+  // Asklevels stores smallest to largest asks
 
   std::unordered_map<Price, std::pair<uint32_t, uint32_t>> BidHT;
   std::unordered_map<Price, std::pair<uint32_t, uint32_t>> AskHT;
@@ -125,6 +126,21 @@ struct CommodityBookV2 {
     reduce_cycles.push_back(static_cast<std::uint32_t>(t1 - t0));
     return removed;
   }
+
+  std::tuple<Price, Shares, Price, Shares> top_of_book() const {
+    Price bp = 0; Shares bs = 0;
+    Price ap = 0; Shares as = 0;
+    if (!BidLevels.empty()) {
+        bp = BidLevels.front().first;
+        bs = static_cast<Shares>(BidLevels.front().second);
+    }
+    if (!AskLevels.empty()) {
+        ap = AskLevels.front().first;
+        as = static_cast<Shares>(AskLevels.front().second);
+    }
+    return {bp, bs, ap, as};
+}
+
 };
 
 } // namespace lowlat::book

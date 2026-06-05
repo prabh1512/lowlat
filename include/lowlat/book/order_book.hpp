@@ -2,24 +2,50 @@
 
 #include <unordered_map>
 #include <array>
+#include <tuple>
 #include <memory>
 #include <stdexcept>
+#include <type_traits>
 #include <lowlat/book/order.hpp>
 #include <lowlat/book/order_pool.hpp>
 #include <lowlat/book/commodity_book_5.hpp>
 #include <absl/container/flat_hash_map.h>
+#include <lowlat/book/book_update.hpp>
+#include <lowlat/core/tsc.hpp>
+
 
 namespace lowlat::book {
 
 inline constexpr std::uint32_t MAX_STOCKS = 10000;
+struct NoOpSink {
+    void operator()(const BookUpdate&) const noexcept {}
+};
 
-template <typename CB, typename IdMap = std::unordered_map<OrderId, std::uint32_t>>
+template <typename CB, typename IdMap = std::unordered_map<OrderId, std::uint32_t>,
+          typename Sink = NoOpSink>
 struct OrderBook {
     OrderPool order_pool;
     IdMap id_to_pool;
+    Sink sink{};
+    std::unique_ptr<std::array<BookUpdate, MAX_STOCKS>> last_published =
+    std::make_unique<std::array<BookUpdate, MAX_STOCKS>>();
     std::unique_ptr<std::array<CB, MAX_STOCKS>> stock_to_book =
         std::make_unique<std::array<CB, MAX_STOCKS>>();
     std::uint32_t peak_live_orders = 0;
+
+    void publish(Stock stock) {
+        if constexpr (std::is_same_v<Sink, NoOpSink>) return;
+        auto& cb = (*stock_to_book)[stock];
+        auto [bp, bs, ap, as] = cb.top_of_book();
+        auto& prev = (*last_published)[stock];
+        if (prev.best_bid_price == bp && prev.best_bid_size == bs
+            && prev.best_ask_price == ap && prev.best_ask_size == as) {
+            return;
+        }
+        prev = BookUpdate{0, stock, bp, bs, ap, as};  // ts not needed for compare
+        sink(BookUpdate{lowlat::core::rdtsc(), stock, bp, bs, ap, as});
+    }
+
 
     void AddOrder(Stock stock, OrderId id, Shares shares, Price price, Side side) {
         std::uint32_t idx = order_pool.Allocate();
@@ -40,6 +66,7 @@ struct OrderBook {
         } else {
             cb.template Add<Side::Ask>(price, shares, idx, order_pool);
         }
+        publish(stock);
     }
 
     void ReduceOrder(OrderId id, Shares delta) {
@@ -66,6 +93,7 @@ struct OrderBook {
             id_to_pool.erase(it);
             order_pool.DeleteOrder(idx);
         }
+        publish(stock);
     }
 
     void DeleteOrder(OrderId id) {
