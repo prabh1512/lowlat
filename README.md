@@ -46,6 +46,8 @@ cmake --build build --parallel
 
 Requires: clang-18, ninja, cmake ≥ 3.20, `libabsl-dev`.
 
+> **Important:** use clang-18 specifically. clang-19+ generates AVX-512 code on this hardware which causes CPU frequency throttling and a ~5× throughput regression.
+
 ---
 
 ## Usage
@@ -76,9 +78,22 @@ Output `.bin` files land in `bench-results/` tagged as `{variant}_ob{ob}_{idmap}
 
 ### Tests
 
+The Release build includes tests — just run:
+
 ```bash
 ctest --test-dir build --output-on-failure
 ```
+
+For sanitizer coverage (as run in CI), use a separate Debug build:
+
+```bash
+cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_COMPILER=clang++-18 -DLOWLAT_ENABLE_ASAN=ON
+cmake --build build-debug --parallel
+ctest --test-dir build-debug --output-on-failure
+```
+
+Replace `ASAN` with `TSAN` or `UBSAN` for the other sanitizers.
 
 ~110 tests across 5 suites:
 
