@@ -9,8 +9,9 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(lowlat_tests
-    test_placeholder.cpp
+    test_spsc.cpp
 )
+
 target_link_libraries(lowlat_tests PRIVATE
     lowlat
     GTest::gtest_main
