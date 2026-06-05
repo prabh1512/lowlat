@@ -80,6 +80,18 @@ Output `.bin` files land in `bench-results/` tagged as `{variant}_ob{ob}_{idmap}
 ctest --test-dir build --output-on-failure
 ```
 
+~110 tests across 5 suites:
+
+| Suite | What it covers |
+|---|---|
+| `SPSCQueue` | single-threaded push/pop, fill/drain, wrap-around, 1M threaded producer-consumer |
+| `OrderBookTest` | 14 scenarios × 6 variants — correctness, error paths, cross-stock isolation |
+| `CrossVariant` | all 6 variants produce identical `top_of_book` snapshots over a 13-step scenario |
+| `ITCHDispatcher` / `ITCHMessages` | all 7 message types, field decoding, timestamps, sequential parsing |
+| `ITCHParser` | SoupBinTCP framing, single/multi-message round-trip, truncation, missing file |
+
+CI runs the full suite under Debug+ASan, Debug+TSan, Debug+UBSan, and Release.
+
 ### Analysis scripts
 
 ```bash
